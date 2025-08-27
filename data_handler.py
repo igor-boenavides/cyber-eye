@@ -16,57 +16,108 @@ class PacketCapture:
     def capture_and_save(self):
         file_exists = os.path.isfile(self.filename)
 
-        # Abrir o CSV para acrescentar dados
-        with open(self.filename, 'a') as file:
-            writer = csv.writer(file)
+        try:
+            # Adicionado newline="" e encoding="utf-8" para evitar problemas no CSV
+            with open(self.filename, "a", newline="", encoding="utf-8") as file:
+                writer = csv.writer(file)
 
-            # Escrever cabeçalho apenas caso o arquivo seja novo
-            if not file_exists:
-                writer.writerow(['src_ip', 'dst_ip', 'len', 'sport_udp', 'dport_udp', 'timestamp'])
+                if not file_exists:
+                    writer.writerow(
+                        [
+                            "timestamp",
+                            "src_mac",
+                            "dst_mac",
+                            "src_ip",
+                            "dst_ip",
+                            "protocol_name",
+                            "packet_len",
+                            "sport",
+                            "dport",
+                        ]
+                    )
 
-            # Captura de pacotes
-            capture = scapy.sniff(iface=self.interface, count=self.count, filter=self.filter)
+                capture = scapy.sniff(
+                    iface=self.interface, count=self.count, filter=self.filter
+                )
 
+                for packet in capture:
+                    if scapy.Ether in packet and scapy.IP in packet:  # Verifica Ether + IP
+                        packet_data = self.extract_universal_fields(packet)
+                        writer.writerow(packet_data)
+                        self.iteration += 1
+        except PermissionError:
+            print(f"Erro: Sem permissão para escrever em '{self.filename}'")
+        except scapy.Scapy_Exception as e:
+            print(f"Erro na captura: {e}")
+        except Exception as e:
+            print(f"Erro inesperado: {e}")
 
-            for packet in capture:
-                if scapy.IP in packet:
-                    timestamp = datetime.fromtimestamp(packet.time).strftime('%H:%M:%S')
+    def extract_universal_fields(self, packet):
+        # Timestamp com data e hora
+        timestamp = datetime.fromtimestamp(packet.time).strftime("%Y-%m-%d %H:%M:%S")
 
-                    self.iteration += 1
+        # Definir protocolos
+        if scapy.TCP in packet:
+            protocol = "TCP"
+            sport = packet[scapy.TCP].sport
+            dport = packet[scapy.TCP].dport
+        elif scapy.UDP in packet:
+            protocol = "UDP"
+            sport = packet[scapy.UDP].sport
+            dport = packet[scapy.UDP].dport
+        elif scapy.ICMP in packet:
+            protocol = "ICMP"
+            sport = None
+            dport = None
+        else:
+            protocol = "OTHER"
+            sport = None
+            dport = None
 
-                    # Verifica se é UDP antes de pegar portas
-                    if scapy.UDP in packet:
-                        sport = packet[scapy.UDP].sport
-                        dport = packet[scapy.UDP].dport
-                    else:
-                        sport = ''
-                        dport = ''
+        # Adicionar flags TCP se disponível
+        tcp_flags = ""
+        if scapy.TCP in packet:
+            tcp_flags = str(packet[scapy.TCP].flags)
 
-                    packet_data = [
-                        packet[scapy.IP].src,
-                        packet[scapy.IP].dst,
-                        len(packet),
-                        sport,
-                        dport,
-                        timestamp
-                    ]
+        packet_data = [
+            timestamp,
+            packet[scapy.Ether].src,
+            packet[scapy.Ether].dst,
+            packet[scapy.IP].src,
+            packet[scapy.IP].dst,
+            protocol,
+            len(packet),
+            sport,
+            dport,
+            tcp_flags  # Nova coluna
+        ]
 
-
-                    writer.writerow(packet_data)
+        return packet_data
 
 
 def main():
-    interface = input('Interface de captura (padrão enp1s0): ') or 'enp1s0'
-    fltr = input('Protocolo de captura (ex: udp, tcp, icmp): ') or ''
-    filename = input('Arquivo CSV para salvar pacotes (padrão packets.csv): ') or 'packets.csv'
-    count = int(input('Quantos pacotes capturar (padrão 10): ' or 10))
+    print("Interfaces disponíveis:")
+    for i, iface in enumerate(scapy.get_if_list(), 1):
+        print(f"{i}. {iface}")
+
+    interface = input("Interface de captura (padrão enp1s0): ") or "enp1s0"
+    fltr = input("Protocolo de captura (ex: udp, tcp, icmp): ") or ""
+    filename = (
+        input("Arquivo CSV para salvar pacotes (padrão packets.csv): ") or "packets.csv"
+    )
+    count = input("Quantos pacotes capturar (padrão 10): ")
+
+    # Trata count padrão
+    if count == "":
+        count = 10
+
+    count = int(count)
 
     pc = PacketCapture(interface, fltr, filename, count)
     pc.capture_and_save()
 
-
     print(f"{pc.iteration} pacotes gravados em '{pc.filename}'.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
