@@ -16,19 +16,19 @@ print(df.columns)
 print(df['Label'].value_counts())
 
 # Treino com tráfego benigno (normal/do bem)
-df_benign = df[df['Label'] == "BENIGN"]
+df_benign = df[df['Label'] == "Benign"]  # Mudança: "BENIGN" -> "Benign"
 
-# Limitar quais colunas serão utilizadas
+# Limitar quais colunas serão utilizadas - NOMES CORRIGIDOS
 features = [
     "Flow Duration",
-    "Total Fwd Packets",
-    "Total Backward Packets",
-    "Total Length of Fwd Packets",
-    "Total Length of Bwd Packets",
-    "Fwd Packet Length Max",
-    "Bwd Packet Length Max",
-    "Flow Bytes/s",
-    "Flow Packets/s"
+    "Tot Fwd Pkts",              # Era: "Total Fwd Packets"
+    "Tot Bwd Pkts",              # Era: "Total Backward Packets"
+    "TotLen Fwd Pkts",           # Era: "Total Length of Fwd Packets"
+    "TotLen Bwd Pkts",           # Era: "Total Length of Bwd Packets"
+    "Fwd Pkt Len Max",           # Era: "Fwd Packet Length Max"
+    "Bwd Pkt Len Max",           # Era: "Bwd Packet Length Max"
+    "Flow Byts/s",               # Era: "Flow Bytes/s"
+    "Flow Pkts/s"                # Era: "Flow Packets/s"
 ]
 
 X = df_benign[features].fillna(0)  # tira NaN
@@ -42,7 +42,7 @@ model = IsolationForest(n_estimators=100, contamination=0.1, random_state=42)
 model.fit(X_scaled)
 
 # Teste com pacotes de ataque
-df_attack = df[df['Label'] != "BENIGN"].sample(2000, random_state=42)
+df_attack = df[df['Label'] != "Benign"].sample(2000, random_state=42)
 
 X_attack = scaler.transform(df_attack[features].fillna(0))
 
