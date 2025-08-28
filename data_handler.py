@@ -2,7 +2,7 @@ import os
 import csv
 from datetime import datetime
 import scapy.all as scapy
-
+from analyzer import Analyzer
 
 class PacketCapture:
     def __init__(self, interface, fltr, filename, count):
@@ -12,6 +12,7 @@ class PacketCapture:
         self.capture = []
         self.iteration = 0
         self.count = count
+        self.analyzer = Analyzer()
 
     def capture_and_save(self):
         file_exists = os.path.isfile(self.filename)
@@ -41,10 +42,17 @@ class PacketCapture:
                 )
 
                 for packet in capture:
-                    if scapy.Ether in packet and scapy.IP in packet:  # Verifica Ether + IP
+                    if scapy.Ether in packet and scapy.IP in packet:
                         packet_data = self.extract_universal_fields(packet)
                         writer.writerow(packet_data)
                         self.iteration += 1
+
+                        # Analisar em tempo real
+                        resultado = self.analyzer.predict(packet_data)
+                        if resultado == -1:
+                            print("🚨 Pacote suspeito detectado!")
+
+
         except PermissionError:
             print(f"Erro: Sem permissão para escrever em '{self.filename}'")
         except scapy.Scapy_Exception as e:
