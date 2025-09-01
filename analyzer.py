@@ -1,60 +1,58 @@
-# analyzer.py
-import pandas as pd
-import numpy as np
-from sklearn.ensemble import IsolationForest
+from samba.dcerpc.smbXsrv import tconB
+
 
 class Analyzer:
     def __init__(self):
-        # Inicializa o modelo (aqui ainda sem treino real)
-        self.model = IsolationForest(n_estimators=100, contamination=0.1, random_state=42)
-        self.is_trained = False
+        self.packets = []
 
-    def preprocess(self, packet_data):
-        """
-        Transforma os dados do pacote em um vetor numérico.
-        packet_data é uma lista que vem do data_handler.extract_universal_fields()
-        """
-        try:
-            timestamp, src_mac, dst_mac, src_ip, dst_ip, protocol, length, sport, dport, flags = packet_data
 
-            # Converter protocolo para número
-            protocol_map = {"TCP": 1, "UDP": 2, "ICMP": 3, "OTHER": 0}
-            protocol_num = protocol_map.get(protocol, 0)
+    def receive_packet(self, packet_data):
+        """Recebe os dados do pacote"""
+        self.packets.append(packet_data)
+        print(f"Pacote recebido: {packet_data}")
 
-            # Converter portas None → -1
-            sport = int(sport) if sport else -1
-            dport = int(dport) if dport else -1
 
-            # Converter flags em número (placeholder simples)
-            flags_num = len(flags) if flags else 0
+    def vector_packet(self, packet_data):
 
-            features = [
-                protocol_num,
-                int(length),
-                sport,
-                dport,
-                flags_num,
-            ]
 
-            return np.array(features).reshape(1, -1)
+        # Formatar packet_data
+        packet_length = packet_data[6]
+        sport = packet_data[7]
+        dport = packet_data[8]
+        tcp_flags = packet_data[9]
 
-        except Exception as e:
-            print(f"Erro no preprocessamento: {e}")
-            return None
 
-    def train(self, data):
-        """
-        Treina o modelo com dados normais.
-        data deve ser um DataFrame ou array já processado.
-        """
-        self.model.fit(data)
-        self.is_trained = True
+        # Protocolo
+        protocol_name = packet_data[5]
+        if protocol_name == 'TCP':
+            protocol_num = 1
+        elif protocol_name == 'UDP':
+            protocol_num = 2
+        elif protocol_name == 'ICMP':
+            protocol_num = 3
+        else:
+            protocol_num = 0
 
-    def predict(self, packet_data):
-        """
-        Faz a predição: -1 = anomalia, 1 = normal
-        """
-        features = self.preprocess(packet_data)
-        if features is not None and self.is_trained:
-            return self.model.predict(features)[0]
-        return 1  # se não está treinado, assume normal
+
+        # TCP Flags
+        tcp_flags_vector = [0, 0, 0, 0]
+
+        if 'S' in tcp_flags:
+            tcp_flags_vector[0] = 1
+        if 'A' in tcp_flags:
+            tcp_flags_vector[1] = 1
+        if 'F' in tcp_flags:
+            tcp_flags_vector[2] = 1
+        if 'R' in tcp_flags:
+            tcp_flags_vector[3] = 1
+
+
+        # IP de origem
+        src_ip = packet_data[3]
+        src_ip_octets = [int(octet) for octet in src_ip.split('.')]
+
+        # IP de destino
+        dst_ip = packet_data[4]
+        dst_ip_octets = [int(octet) for octet in dst_ip.split('.')]
+
+        vector = src_ip_octets + dst_ip_octets + [protocol_num, packet_length, sport, dport] + tcp_flags_vector

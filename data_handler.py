@@ -5,23 +5,25 @@ import scapy.all as scapy
 from analyzer import Analyzer
 
 class PacketCapture:
-    def __init__(self, interface, fltr, filename, count):
+    def __init__(self, interface, fltr, filename, count, analyzer=None):
         self.interface = interface
         self.filter = fltr
         self.filename = filename
         self.capture = []
         self.iteration = 0
         self.count = count
-        self.analyzer = Analyzer()
+        self.analyzer = analyzer
 
     def capture_and_save(self):
+        # Verifica se o arquivo existe
         file_exists = os.path.isfile(self.filename)
 
         try:
-            # Adicionado newline="" e encoding="utf-8" para evitar problemas no CSV
+            # Abre/cria o arquivo
             with open(self.filename, "a", newline="", encoding="utf-8") as file:
                 writer = csv.writer(file)
 
+                # Se o arquivo não existe, são adicionados os cabeçalhos apropriados
                 if not file_exists:
                     writer.writerow(
                         [
@@ -37,22 +39,26 @@ class PacketCapture:
                         ]
                     )
 
+                # Define os parâmetros do sniff dos pacotes capturados
                 capture = scapy.sniff(
                     iface=self.interface, count=self.count, filter=self.filter
                 )
 
+                # Análise individual dos pacotes
                 for packet in capture:
                     if scapy.Ether in packet and scapy.IP in packet:
                         packet_data = self.extract_universal_fields(packet)
                         writer.writerow(packet_data)
                         self.iteration += 1
 
-                        # Analisar em tempo real
-                        resultado = self.analyzer.predict(packet_data)
-                        if resultado == -1:
-                            print("🚨 Pacote suspeito detectado!")
+                        # Enviar para analyzer
+                        from analyzer import Analyzer
+                        analyzer = Analyzer()
+
+                        analyzer.receive_packet(packet_data)
 
 
+        # Levantando excessões
         except PermissionError:
             print(f"Erro: Sem permissão para escrever em '{self.filename}'")
         except scapy.Scapy_Exception as e:
@@ -60,6 +66,7 @@ class PacketCapture:
         except Exception as e:
             print(f"Erro inesperado: {e}")
 
+    # Extrai os campos universais dos pacotes
     def extract_universal_fields(self, packet):
         # Timestamp com data e hora
         timestamp = datetime.fromtimestamp(packet.time).strftime("%Y-%m-%d %H:%M:%S")
@@ -87,6 +94,7 @@ class PacketCapture:
         if scapy.TCP in packet:
             tcp_flags = str(packet[scapy.TCP].flags)
 
+        # Preenche as linhas dos pacotes
         packet_data = [
             timestamp,
             packet[scapy.Ether].src,
@@ -97,7 +105,7 @@ class PacketCapture:
             len(packet),
             sport,
             dport,
-            tcp_flags  # Nova coluna
+            tcp_flags
         ]
 
         return packet_data
@@ -121,10 +129,15 @@ def main():
 
     count = int(count)
 
-    pc = PacketCapture(interface, fltr, filename, count)
+    # Criar instância de analyzer
+    from analyzer import Analyzer
+    analyzer = Analyzer()
+
+    pc = PacketCapture(interface, fltr, filename, count, analyzer)
     pc.capture_and_save()
 
     print(f"{pc.iteration} pacotes gravados em '{pc.filename}'.")
+
 
 
 if __name__ == "__main__":
