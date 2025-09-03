@@ -55,7 +55,9 @@ class PacketCapture:
                         from analyzer import Analyzer
                         analyzer = Analyzer()
 
-                        analyzer.receive_packet(packet_data)
+                        # Enviar para analyzer
+                        if self.analyzer:
+                            self.analyzer.receive_packet(packet_data)
 
 
         # Levantando excessões
@@ -67,7 +69,8 @@ class PacketCapture:
             print(f"Erro inesperado: {e}")
 
     # Extrai os campos universais dos pacotes
-    def extract_universal_fields(self, packet):
+    @staticmethod
+    def extract_universal_fields(packet):
         # Timestamp com data e hora
         timestamp = datetime.fromtimestamp(packet.time).strftime("%Y-%m-%d %H:%M:%S")
 
@@ -92,7 +95,7 @@ class PacketCapture:
         # Adicionar flags TCP se disponível
         tcp_flags = ""
         if scapy.TCP in packet:
-            tcp_flags = str(packet[scapy.TCP].flags)
+            tcp_flags = str(packet[scapy.TCP].flags) if scapy.TCP in packet else ""
 
         # Preenche as linhas dos pacotes
         packet_data = [
