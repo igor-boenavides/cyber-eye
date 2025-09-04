@@ -10,75 +10,48 @@ class Analyzer:
     def receive_packet(self, packet_data):
         # Recebe os dados do pacote
         self.packets.append(packet_data)
-        print(f"Pacote recebido: {packet_data}")
 
-        # CORREÇÃO: Chama o método save_file para salvar o vetor
-        self.save_file(packet_data)
 
-    @staticmethod
-    def vector_packet(packet_data):
-        # Formatar packet_data
-        packet_length = packet_data[6]
-        sport = packet_data[7] or 0
-        dport = packet_data[8] or 0
-        tcp_flags = str(packet_data[9]) if len(packet_data) > 9 else ""  # CORREÇÃO: Garantir que existe
+    def close_window(self):
+        # Métricas de janela
+        if not self.packets:
+            return
 
-        # Protocolo
-        protocol_name = packet_data[5]
-        match protocol_name:
-            case 'TCP':
-                protocol_num = 1
-            case 'UDP':
-                protocol_num = 2
-            case 'ICMP':
-                protocol_num = 3
-            case _:
-                protocol_num = 0
+        num_packets = len(self.packets) # Quantidade de pacotes capturados
+        total_bytes = sum(int(p[6]) for p in self.packets) # Tamanho total dos pacotes em bytes
+        unique_src_ips = len(set(p[3] for p in self.packets)) # Quantidade de IPs de origem
+        unique_dst_ips = len(set(p[4] for p in self.packets)) # Quantidade de IPs de destino
 
-        # TCP Flags
-        tcp_flags_vector = [0, 0, 0, 0]
-        if 'S' in tcp_flags: tcp_flags_vector[0] = 1
-        if 'A' in tcp_flags: tcp_flags_vector[1] = 1
-        if 'F' in tcp_flags: tcp_flags_vector[2] = 1
-        if 'R' in tcp_flags: tcp_flags_vector[3] = 1
+        # Contagem de protocolos
+        tcp_count = sum(1 for p in self.packets if p[5] == 'TCP')
+        udp_count = sum(1 for p in self.packets if p[5] == 'UDP')
+        icmp_count = sum(1 for p in self.packets if p[5] == 'ICMP')
 
-        # IPs
-        src_ip_octets = [int(o) for o in packet_data[3].split('.')]
-        dst_ip_octets = [int(o) for o in packet_data[4].split('.')]
+        # Vetor final da janela de captura
+        vector = [
+            num_packets,
+            total_bytes,
+            unique_src_ips, unique_dst_ips,
+            tcp_count, udp_count, icmp_count
+        ]
 
-        # Compor e retornar vetor
-        vector = src_ip_octets + dst_ip_octets + [protocol_num, packet_length, sport, dport] + tcp_flags_vector
-        return vector
-
-    def save_file(self, packet_data):
-        # Verifica se o arquivo existe
+        # Gravar no CSV
         file_exists = os.path.isfile(self.filename)
 
-        try:
-            # Abre/cria o arquivo
-            with open(self.filename, "a", newline="", encoding="utf-8") as file:
-                writer = csv.writer(file)
+        with open(self.filename, "a", newline="", encoding="utf-8") as file:
+            writer = csv.writer(file)
 
-                # Se o arquivo não existe, são adicionados os cabeçalhos apropriados
-                if not file_exists:
-                    writer.writerow(
-                        [
-                            "src1", "src2", "src3", "src4",
-                            "dst1", "dst2", "dst3", "dst4",
-                            "protocol_num",
-                            "packet_length",
-                            "sport",
-                            "dport",
-                            "flag_S", "flag_A", "flag_F", "flag_R"
-                        ]
-                    )
+            # Se o arquivo não existe, são adicionados os cabeçalhos apropriados
+            if not file_exists:
+                writer.writerow([
+                        "num_packets",
+                        "total_bytes",
+                        "unique_src_ips", "unique_dst_ips",
+                        "tcp_count", "udp_count", "icmp_count"
+                    ])
 
-                # Gravar no arquivo
-                vector = self.vector_packet(packet_data)
-                writer.writerow(vector)
+            writer.writerow(vector)
 
-        # Levantando excessões
-        except PermissionError:
-            print(f"Erro: Sem permissão para escrever em '{self.filename}'")
-        except Exception as e:
-            print(f"Erro inesperado: {e}")
+            # Limpa pacotes para próxima janela de captura
+
+            self.packets = []
