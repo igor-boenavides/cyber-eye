@@ -1,12 +1,22 @@
+# `os` e `csv` para manipulação/criação de arquivos
 import os
 import csv
+# `datetime` fazer timestamp e formatar
 from datetime import datetime
+# `scapy.all` sniffing de rede
 import scapy.all as scapy
+# para conexão com o analisador de pacotes
 from analyzer import Analyzer
+# `time` para fazer a captura em um intervalo de tempo definido
 import time
 
-
+"""
+Criação da classe da captura de pacotes
+"""
 class PacketCapture:
+    """
+    Méto|do de inicialização
+    """
     def __init__(self, interface, fltr, filename, duration, analyzer=None):
         self.interface = interface
         self.filter = fltr
@@ -15,6 +25,10 @@ class PacketCapture:
         self.duration = duration
         self.analyzer = analyzer
 
+
+    """
+    Realiza a captura e grava os dados dos pacotes capturados no arquivo específicado 
+    """
     def capture_and_save(self):
         print(f'Capturando por {self.duration}s na inteface {self.interface}...')
 
@@ -35,7 +49,9 @@ class PacketCapture:
 
         print("Captura finalizada.")
 
-
+    """
+    Grava os pacotes e manda para o analizador
+    """
     def _packet_handler(self, packet):
         if scapy.Ether in packet and scapy.IP in packet:
             packet_data = self.extract_universal_fields(packet)
@@ -58,6 +74,9 @@ class PacketCapture:
             if self.analyzer:
                 self.analyzer.receive_packet(packet_data)
 
+    """
+    Extrai os campos que aparecem em todos os pacotes
+    """
     @staticmethod
     def extract_universal_fields(packet):
         timestamp = datetime.fromtimestamp(packet.time).strftime("%Y-%m-%d %H:%M:%S")
@@ -96,7 +115,9 @@ class PacketCapture:
             tcp_flags
         ]
 
-
+"""
+Chama os métodos
+"""
 def main():
     print("Interfaces disponíveis:")
     for i, iface in enumerate(scapy.get_if_list(), 1):

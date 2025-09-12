@@ -49,9 +49,7 @@ class Analyzer:
                         "unique_src_ips", "unique_dst_ips",
                         "tcp_count", "udp_count", "icmp_count"
                     ])
-
             writer.writerow(vector)
 
             # Limpa pacotes para próxima janela de captura
-
             self.packets = []
