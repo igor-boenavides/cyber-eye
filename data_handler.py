@@ -1,13 +1,8 @@
-# `os` e `csv` para manipulação/criação de arquivos
 import os
 import csv
-# `datetime` fazer timestamp e formatar
 from datetime import datetime
-# `scapy.all` sniffing de rede
 import scapy.all as scapy
-# para conexão com o analisador de pacotes
 from analyzer import Analyzer
-# `time` para fazer a captura em um intervalo de tempo definido
 import time
 
 """
