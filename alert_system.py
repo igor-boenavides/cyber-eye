@@ -1,19 +1,23 @@
 # 1. Importar bibliotecas necessárias
-#    - pandas, numpy, joblib, e o Analyzer (para gerar vetores)
-#    - talvez time, caso queira rodar em loop contínuo
+import numpy as np
+import pandas as pd
+import joblib
+from analyzer import Analyzer
+import time
 
 # 2. Definir caminhos dos arquivos de artefatos
-#    MODEL_PATH = "anomaly_model.pkl"
-#    SCALER_PATH = "scaler.pkl"
-#    THRESHOLD_PATH = "threshold.txt"
+MODEL_PATH = "anomaly_model.pkl"
+SCALER_PATH = "scaler.pkl"
+THRESHOLD_PATH = "threshold.txt"
 
 # 3. Carregar o modelo, scaler e threshold
-#    - model = joblib.load(MODEL_PATH)
-#    - scaler = joblib.load(SCALER_PATH)
-#    - threshold = ler o valor do arquivo THRESHOLD_PATH
+model = joblib.load(MODEL_PATH)
+scaler = joblib.load(SCALER_PATH)
+with open(THRESHOLD_PATH, 'r') as f:
+    threshold = float(f.read().strip())
 
 # 4. Iniciar o objeto Analyzer para capturar pacotes
-#    - analyzer = Analyzer()
+analyzer = Analyzer()
 
 # 5. Loop principal de monitoramento
 #    enquanto o sistema estiver ativo:
