@@ -19,11 +19,35 @@ with open(THRESHOLD_PATH, 'r') as f:
 # 4. Iniciar o objeto Analyzer para capturar pacotes
 analyzer = Analyzer()
 
-# 5. Loop principal de monitoramento
-#    enquanto o sistema estiver ativo:
-#        a) Capturar uma janela de pacotes (por tempo ou quantidade)
-#        b) Gerar o vetor correspondente (igual ao que vai pro vector.csv)
-#        c) Converter o vetor para DataFrame com as mesmas colunas do treino
+# 5. Loop principal de monitoramento enquanto o sistema estiver ativo:
+
+# a) Capturar uma janela de pacotes (por tempo ou quantidade)
+while True:
+    try:
+        packets = analyzer.capture_window(time_window=3)  # Captura por 3 segundos
+    except Exception as e:
+        print(f"Erro ao capturar pacotes: {e}")
+        continue
+    if not packets:
+        print("Nenhum pacote capturado.")
+        continue
+
+# b) Gerar o vetor correspondente (igual ao que vai pro vector.csv)    
+    num_packets = len(packets)
+    total_bytes = sum(int(p[6]) for p in packets)
+    unique_src_ips = len(set(p[3] for p in packets))
+    unique_dst_ips = len(set(p[4] for p in packets))
+    tcp_count = sum(1 for p in packets if p[5] == 'TCP')
+    udp_count = sum(1 for p in packets if p[5] == 'UDP')
+    icmp_count = sum(1 for p in packets if p[5] == 'ICMP')
+
+    vetor = np.array([[num_packets, total_bytes, unique_src_ips, unique_dst_ips,
+                       tcp_count, udp_count, icmp_count]])
+# c) Converter o vetor para DataFrame com as mesmas colunas do treino
+    columns = ["num_packets", "total_bytes", "unique_src_ips", "unique_dst_ips",
+                "tcp_count", "udp_count", "icmp_count"]
+
+    df = pd.DataFrame(vetor, columns=columns)
 
 # 6. Pré-processar o vetor
 #    - Garantir que todas as colunas estão presentes e na mesma ordem
