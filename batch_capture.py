@@ -2,7 +2,7 @@ from data_handler import PacketCapture
 from analyzer import Analyzer
 
 # parâmetros fixos
-INTERFACE = "enp1s0"
+INTERFACE = "Ethernet"
 FILTER = ""  # vazio = captura tudo
 FILENAME = "packets.csv"
 DURATION = 240  # segundos por janela
