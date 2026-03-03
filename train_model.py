@@ -5,13 +5,14 @@ from sklearn.preprocessing import RobustScaler
 import joblib
 import os
 from analyzer import Analyzer
+from config import settings
 
 # CONSTANTES
 analyzer = Analyzer()
 VECTOR_CSV = analyzer.filename
-MODEL_PATH = 'anomaly_model.pkl'
-SCALER_PATH = 'scaler.pkl'
-THRESHOLD_PATH = 'threshold.txt'
+MODEL_PATH = settings.model_path
+SCALER_PATH = settings.scaler_path
+THRESHOLD_PATH = settings.threshold_path
 
 # PROCENTO PARA THRESHOLD (Ajustar de acordo)
 THRESHOLD_PERCENTILE = 97.5 # # exemplo: 97.5% dos pontos do baseline são considerados "normais"

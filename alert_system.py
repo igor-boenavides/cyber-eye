@@ -3,26 +3,18 @@ import joblib
 import numpy as np
 import pandas as pd
 from analyzer import Analyzer
-
+from config import settings
 
 # Carrega artefatos
-MODEL_PATH = "anomaly_model.pkl"
-SCALER_PATH = "scaler.pkl"
-THRESHOLD_PATH = "threshold.txt"
+MODEL_PATH = settings.model_path
+SCALER_PATH = settings.scaler_path
+THRESHOLD_PATH = settings.threshold_path
 
-INTERFACE = "Ethernet"
-WINDOW_TIME = 3
+INTERFACE = settings.interface
+WINDOW_TIME = settings.window_time
 
 # Define colunas do vetor de características
-FEATURE_COLUMNS = [
-    "num_packets",
-    "total_bytes",
-    "unique_src_ips",
-    "unique_dst_ips",
-    "tcp_count",
-    "udp_count",
-    "icmp_count"
-]
+FEATURE_COLUMNS = settings.feature_columns
 
 print("[INFO] Carregando artefatos...")
 model = joblib.load(MODEL_PATH)
@@ -34,15 +26,7 @@ print(f"[OK] Threshold = {threshold:.4f}")
 
 # Inicia monitoramento
 analyzer = Analyzer()
-columns = [
-    "num_packets",
-    "total_bytes",
-    "unique_src_ips",
-    "unique_dst_ips",
-    "tcp_count",
-    "udp_count",
-    "icmp_count"
-]
+columns = settings.feature_columns
 
 print("[INFO] Monitoramento iniciado\n")
 

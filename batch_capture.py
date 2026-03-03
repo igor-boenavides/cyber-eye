@@ -1,12 +1,13 @@
 from data_handler import PacketCapture
 from analyzer import Analyzer
+from config import settings
 
 # parâmetros fixos
-INTERFACE = "Ethernet"
-FILTER = ""  # vazio = captura tudo
+INTERFACE = settings.interface
+FILTER = settings.capture_filter
 FILENAME = "packets.csv"
-DURATION = 240  # segundos por janela
-NUM_RUNS = 100
+DURATION = settings.capture_duration  # segundos por janela
+NUM_RUNS = settings.num_runs
 
 analyzer = Analyzer()
 
