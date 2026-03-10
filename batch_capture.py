@@ -1,4 +1,5 @@
-from data_handler import PacketCapture
+import logging
+
 from analyzer import Analyzer
 from config import settings
 
@@ -9,11 +10,8 @@ FILENAME = "packets.csv"
 DURATION = settings.capture_duration  # segundos por janela
 NUM_RUNS = settings.num_runs
 
-analyzer = Analyzer()
+    logging.info("Capturas finalizadas")
 
-for i in range(NUM_RUNS):
-    print(f"\n--- Execução {i+1}/{NUM_RUNS} ---\n")
-    pc = PacketCapture(INTERFACE, FILTER, FILENAME, DURATION, analyzer)
-    pc.capture_and_save()
 
-print("Capturas finalizadas!")
+if __name__ == "__main__":
+    main()
