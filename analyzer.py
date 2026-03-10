@@ -3,6 +3,8 @@ import os
 import time
 import scapy.all as scapy
 
+from config import settings
+
 
 class Analyzer:
     def __init__(self):
@@ -72,15 +74,7 @@ class Analyzer:
         with open(self.filename, "a", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             if not file_exists:
-                writer.writerow([
-                    "num_packets",
-                    "total_bytes",
-                    "unique_src_ips",
-                    "unique_dst_ips",
-                    "tcp_count",
-                    "udp_count",
-                    "icmp_count"
-                ])
+                writer.writerow(list(settings.feature_columns))
             writer.writerow(vector)
 
         self.packets = []

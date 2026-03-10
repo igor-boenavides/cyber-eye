@@ -1,18 +1,28 @@
-from data_handler import PacketCapture
+import logging
+
 from analyzer import Analyzer
+from config import settings
+from data_handler import PacketCapture
 
-# parâmetros fixos
-INTERFACE = "Ethernet"
-FILTER = ""  # vazio = captura tudo
-FILENAME = "packets.csv"
-DURATION = 240  # segundos por janela
-NUM_RUNS = 100
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
-analyzer = Analyzer()
 
-for i in range(NUM_RUNS):
-    print(f"\n--- Execução {i+1}/{NUM_RUNS} ---\n")
-    pc = PacketCapture(INTERFACE, FILTER, FILENAME, DURATION, analyzer)
-    pc.capture_and_save()
+def main() -> None:
+    analyzer = Analyzer()
 
-print("Capturas finalizadas!")
+    for run in range(settings.num_runs):
+        logging.info("Execução %s/%s", run + 1, settings.num_runs)
+        pc = PacketCapture(
+            settings.interface,
+            settings.capture_filter,
+            "packets.csv",
+            settings.capture_duration,
+            analyzer,
+        )
+        pc.capture_and_save()
+
+    logging.info("Capturas finalizadas")
+
+
+if __name__ == "__main__":
+    main()
