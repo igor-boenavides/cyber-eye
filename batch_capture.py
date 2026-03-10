@@ -2,24 +2,13 @@ import logging
 
 from analyzer import Analyzer
 from config import settings
-from data_handler import PacketCapture
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-
-
-def main() -> None:
-    analyzer = Analyzer()
-
-    for run in range(settings.num_runs):
-        logging.info("Execução %s/%s", run + 1, settings.num_runs)
-        pc = PacketCapture(
-            settings.interface,
-            settings.capture_filter,
-            "packets.csv",
-            settings.capture_duration,
-            analyzer,
-        )
-        pc.capture_and_save()
+# parâmetros fixos
+INTERFACE = settings.interface
+FILTER = settings.capture_filter
+FILENAME = "packets.csv"
+DURATION = settings.capture_duration  # segundos por janela
+NUM_RUNS = settings.num_runs
 
     logging.info("Capturas finalizadas")
 

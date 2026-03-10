@@ -10,15 +10,12 @@ from sklearn.preprocessing import RobustScaler
 from analyzer import Analyzer
 from config import settings
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-
 # CONSTANTES
 analyzer = Analyzer()
-VECTOR_CSV = str(settings.vector_csv)
+VECTOR_CSV = analyzer.filename
 MODEL_PATH = settings.model_path
 SCALER_PATH = settings.scaler_path
 THRESHOLD_PATH = settings.threshold_path
-FEATURE_COLUMNS = list(settings.feature_columns)
 
 # PROCENTO PARA THRESHOLD (Ajustar de acordo)
 THRESHOLD_PERCENTILE = 97.5
