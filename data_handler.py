@@ -1,92 +1,91 @@
-import os
 import csv
-from datetime import datetime
-import scapy.all as scapy
-from analyzer import Analyzer
+import logging
+import os
 import time
+from datetime import datetime
 
-"""
-Criação da classe da captura de pacotes
-"""
+from scapy.all import AsyncSniffer, Ether, ICMP, IP, TCP, UDP, get_if_list
+
+from analyzer import Analyzer
+from config import settings
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+
+
 class PacketCapture:
-    """
-    Méto|do de inicialização
-    """
-    def __init__(self, interface, fltr, filename, duration, analyzer=None):
+    """Criação da classe da captura de pacotes."""
+
+    def __init__(self, interface, capture_filter, filename, duration, analyzer=None):
         self.interface = interface
-        self.filter = fltr
+        self.capture_filter = capture_filter
         self.filename = filename
         self.iteration = 0
         self.duration = duration
         self.analyzer = analyzer
 
-
-    """
-    Realiza a captura e grava os dados dos pacotes capturados no arquivo específicado 
-    """
     def capture_and_save(self):
-        print(f'Capturando por {self.duration}s na inteface {self.interface}...')
+        logging.info("Capturando por %ss na interface %s...", self.duration, self.interface)
 
-        # sniffer assíncrono: você controla quando parar
-        sniffer = scapy.AsyncSniffer(
+        sniffer = AsyncSniffer(
             iface=self.interface,
-            filter=self.filter,
+            filter=self.capture_filter,
             prn=self._packet_handler,
-            store=False
+            store=False,
         )
         sniffer.start()
-        time.sleep(self.duration)  # espera a janela terminar
-        sniffer.stop()  # para imediatamente
+        time.sleep(self.duration)
+        sniffer.stop()
 
-        # fecha a janela (gera 1 linha no vector.csv)
         if self.analyzer:
             self.analyzer.close_window()
 
-        print("Captura finalizada.")
+        logging.info("Captura finalizada.")
 
-    """
-    Grava os pacotes e manda para o analizador
-    """
     def _packet_handler(self, packet):
-        if scapy.Ether in packet and scapy.IP in packet:
+        if Ether in packet and IP in packet:
             packet_data = self.extract_universal_fields(packet)
 
-            # grava no CSV bruto
             file_exists = os.path.isfile(self.filename)
             with open(self.filename, "a", newline="", encoding="utf-8") as file:
                 writer = csv.writer(file)
-                if not file_exists:  # primeira vez → cabeçalho
-                    writer.writerow([
-                        "timestamp", "src_mac", "dst_mac", "src_ip", "dst_ip",
-                        "protocol_name", "packet_len", "sport", "dport", "tcp_flags"
-                    ])
+                if not file_exists:
+                    writer.writerow(
+                        [
+                            "timestamp",
+                            "src_mac",
+                            "dst_mac",
+                            "src_ip",
+                            "dst_ip",
+                            "protocol_name",
+                            "packet_len",
+                            "sport",
+                            "dport",
+                            "tcp_flags",
+                        ]
+                    )
                 writer.writerow(packet_data)
 
             self.iteration += 1
-            print(f"Pacote {self.iteration} capturado")
+            logging.debug("Pacote %s capturado", self.iteration)
 
-            # envia pro analyzer (ele só acumula)
             if self.analyzer:
                 self.analyzer.receive_packet(packet_data)
 
-    """
-    Extrai os campos que aparecem em todos os pacotes
-    """
     @staticmethod
     def extract_universal_fields(packet):
         timestamp = datetime.fromtimestamp(packet.time).strftime("%Y-%m-%d %H:%M:%S")
 
-        if scapy.TCP in packet:
+        if TCP in packet:
             protocol = "TCP"
-            sport = packet[scapy.TCP].sport
-            dport = packet[scapy.TCP].dport
-            tcp_flags = str(packet[scapy.TCP].flags)
-        elif scapy.UDP in packet:
+            sport = packet[TCP].sport
+            dport = packet[TCP].dport
+            tcp_flags = str(packet[TCP].flags)
+        elif UDP in packet:
             protocol = "UDP"
-            sport = packet[scapy.UDP].sport
-            dport = packet[scapy.UDP].dport
+            sport = packet[UDP].sport
+            dport = packet[UDP].dport
             tcp_flags = ""
-        elif scapy.ICMP in packet:
+        elif ICMP in packet:
             protocol = "ICMP"
             sport = None
             dport = None
@@ -99,41 +98,39 @@ class PacketCapture:
 
         return [
             timestamp,
-            packet[scapy.Ether].src,
-            packet[scapy.Ether].dst,
-            packet[scapy.IP].src,
-            packet[scapy.IP].dst,
+            packet[Ether].src,
+            packet[Ether].dst,
+            packet[IP].src,
+            packet[IP].dst,
             protocol,
             len(packet),
             sport,
             dport,
-            tcp_flags
+            tcp_flags,
         ]
 
-"""
-Chama os métodos
-"""
+
 def main():
-    print("Interfaces disponíveis:")
-    for i, iface in enumerate(scapy.get_if_list(), 1):
-        print(f"{i}. {iface}")
+    logging.info("Interfaces disponíveis:")
+    for i, iface in enumerate(get_if_list(), 1):
+        logging.info("%s. %s", i, iface)
 
-    interface = input("Interface de captura (padrão enp1s0): ") or "enp1s0"
-    fltr = input("Protocolo de captura (ex: udp, tcp, icmp): ") or ""
-    filename = input("Arquivo CSV para salvar pacotes (padrão packets.csv): ") or "packets.csv"
+    interface = settings.interface
+    capture_filter = settings.capture_filter
+    filename = "packets.csv"
 
-    duration_input = input("Duração da captura em segundos (padrão 30): ")
+    duration = settings.capture_duration
     try:
-        duration = int(duration_input) if duration_input else 30
+        duration = int(duration) if duration else 30
     except ValueError:
-        print("Valor inválido para duração. Usando padrão de 30 segundos.")
+        logging.warning("Valor inválido para duração. Usando padrão de 30 segundos.")
         duration = 30
 
     analyzer = Analyzer()
-    pc = PacketCapture(interface, fltr, filename, duration, analyzer)
+    pc = PacketCapture(interface, capture_filter, filename, duration, analyzer)
     pc.capture_and_save()
 
-    print(f"{pc.iteration} pacotes gravados em '{pc.filename}'.")
+    logging.info("%s pacotes gravados em '%s'.", pc.iteration, pc.filename)
 
 
 if __name__ == "__main__":

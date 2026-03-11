@@ -1,78 +1,59 @@
+import logging
 import time
+
 import joblib
-import numpy as np
 import pandas as pd
+
 from analyzer import Analyzer
+from config import settings
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
 
-# Carrega artefatos
-MODEL_PATH = "anomaly_model.pkl"
-SCALER_PATH = "scaler.pkl"
-THRESHOLD_PATH = "threshold.txt"
+def main() -> None:
+    logging.info("Carregando artefatos...")
+    model = joblib.load(settings.model_path)
+    scaler = joblib.load(settings.scaler_path)
+    with open(settings.threshold_path, encoding="utf-8") as f:
+        threshold = float(f.read().strip())
 
-INTERFACE = "Ethernet"
-WINDOW_TIME = 3
+    logging.info("Threshold = %.4f", threshold)
 
-# Define colunas do vetor de características
-FEATURE_COLUMNS = [
-    "num_packets",
-    "total_bytes",
-    "unique_src_ips",
-    "unique_dst_ips",
-    "tcp_count",
-    "udp_count",
-    "icmp_count"
-]
+    analyzer = Analyzer()
+    columns = list(settings.feature_columns)
 
-print("[INFO] Carregando artefatos...")
-model = joblib.load(MODEL_PATH)
-scaler = joblib.load(SCALER_PATH)
-with open(THRESHOLD_PATH) as f:
-    threshold = float(f.read().strip())
+    logging.info("Monitoramento iniciado")
 
-print(f"[OK] Threshold = {threshold:.4f}")
+    while True:
+        try:
+            packets = analyzer.capture_window(
+                time_window=settings.window_time,
+                interface=settings.interface,
+                fltr=settings.capture_filter,
+            )
 
-# Inicia monitoramento
-analyzer = Analyzer()
-columns = [
-    "num_packets",
-    "total_bytes",
-    "unique_src_ips",
-    "unique_dst_ips",
-    "tcp_count",
-    "udp_count",
-    "icmp_count"
-]
+            vector = analyzer.compute_vector(packets)
+            if vector is None:
+                logging.info("Nenhum pacote capturado")
+                continue
 
-print("[INFO] Monitoramento iniciado\n")
+            df = pd.DataFrame([vector], columns=columns)
+            x_scaled = scaler.transform(df)
+            score = model.decision_function(x_scaled)[0]
 
-# Loop principal
-while True:
-    try:
-        packets = analyzer.capture_window(
-            time_window=WINDOW_TIME,
-            interface=INTERFACE
-        )
+            if score < threshold:
+                logging.warning("ANOMALIA DETECTADA | score=%.4f", score)
+            else:
+                logging.info("Normal | score=%.4f", score)
 
-        vector = analyzer.compute_vector(packets)
-        if vector is None:
-            print("[INFO] Nenhum pacote capturado")
-            continue
+        except KeyboardInterrupt:
+            logging.info("Encerrado pelo usuário")
+            break
+        except Exception as exc:
+            logging.exception("Erro no monitoramento: %s", exc)
 
-        df = pd.DataFrame([vector], columns=columns)
-        X_scaled = scaler.transform(df)
-        score = model.decision_function(X_scaled)[0]
+        time.sleep(1)
 
-        if score < threshold:
-            print(f"🚨 ANOMALIA DETECTADA | score={score:.4f}")
-        else:
-            print(f"✓ Normal | score={score:.4f}")
 
-    except KeyboardInterrupt:
-        print("\n[INFO] Encerrado pelo usuário")
-        break
-
-    except Exception as e:
-        print(f"[ERRO] {e}")
-
-    time.sleep(1)
+if __name__ == "__main__":
+    main()
