@@ -2,47 +2,28 @@ import time
 import joblib
 import numpy as np
 import pandas as pd
+
 from analyzer import Analyzer
+from config import settings
+from logger import log_event
 
 
-# Carrega artefatos
-MODEL_PATH = "anomaly_model.pkl"
-SCALER_PATH = "scaler.pkl"
-THRESHOLD_PATH = "threshold.txt"
-
-INTERFACE = "Ethernet"
-WINDOW_TIME = 3
+INTERFACE = settings.interface
+WINDOW_TIME = settings.window_time
 
 # Define colunas do vetor de características
-FEATURE_COLUMNS = [
-    "num_packets",
-    "total_bytes",
-    "unique_src_ips",
-    "unique_dst_ips",
-    "tcp_count",
-    "udp_count",
-    "icmp_count"
-]
+FEATURE_COLUMNS = list(settings.feature_columns)
 
 print("[INFO] Carregando artefatos...")
-model = joblib.load(MODEL_PATH)
-scaler = joblib.load(SCALER_PATH)
-with open(THRESHOLD_PATH) as f:
+model = joblib.load(settings.model_path)
+scaler = joblib.load(settings.scaler_path)
+with open(settings.threshold_path) as f:
     threshold = float(f.read().strip())
 
 print(f"[OK] Threshold = {threshold:.4f}")
 
 # Inicia monitoramento
 analyzer = Analyzer()
-columns = [
-    "num_packets",
-    "total_bytes",
-    "unique_src_ips",
-    "unique_dst_ips",
-    "tcp_count",
-    "udp_count",
-    "icmp_count"
-]
 
 print("[INFO] Monitoramento iniciado\n")
 
@@ -59,9 +40,10 @@ while True:
             print("[INFO] Nenhum pacote capturado")
             continue
 
-        df = pd.DataFrame([vector], columns=columns)
+        df = pd.DataFrame([vector], columns=FEATURE_COLUMNS)
         X_scaled = scaler.transform(df)
         score = model.decision_function(X_scaled)[0]
+        log_event(score, threshold, vector)  # ← adiciona essa linha
 
         if score < threshold:
             print(f"🚨 ANOMALIA DETECTADA | score={score:.4f}")

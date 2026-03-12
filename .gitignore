@@ -1,1 +1,17 @@
 .idea/
+plano_de_implementacao.txt
+
+# Logs
+logs/
+
+# Dados de captura
+*.csv
+
+# Artefatos do modelo (arquivos grandes/binários)
+artifacts/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pkl

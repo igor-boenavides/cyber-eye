@@ -10,7 +10,7 @@ Criação da classe da captura de pacotes
 """
 class PacketCapture:
     """
-    Méto|do de inicialização
+    Inicializa a classe com os parâmetros necessários para a captura
     """
     def __init__(self, interface, fltr, filename, duration, analyzer=None):
         self.interface = interface
@@ -67,7 +67,7 @@ class PacketCapture:
 
             # envia pro analyzer (ele só acumula)
             if self.analyzer:
-                self.analyzer.receive_packet(packet_data)
+                self.analyzer.receive_packet(packet)
 
     """
     Extrai os campos que aparecem em todos os pacotes

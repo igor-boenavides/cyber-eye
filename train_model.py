@@ -4,17 +4,19 @@ from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import RobustScaler
 import joblib
 import os
+
 from analyzer import Analyzer
+from config import settings
 
 # CONSTANTES
 analyzer = Analyzer()
-VECTOR_CSV = analyzer.filename
-MODEL_PATH = 'anomaly_model.pkl'
-SCALER_PATH = 'scaler.pkl'
-THRESHOLD_PATH = 'threshold.txt'
+VECTOR_CSV = settings.vector_csv
+MODEL_PATH = settings.model_path
+SCALER_PATH = settings.scaler_path
+THRESHOLD_PATH = settings.threshold_path
 
 # PROCENTO PARA THRESHOLD (Ajustar de acordo)
-THRESHOLD_PERCENTILE = 97.5 # # exemplo: 97.5% dos pontos do baseline são considerados "normais"
+THRESHOLD_PERCENTILE = settings.threshold_percentile # # exemplo: 97.5% dos pontos do baseline são considerados "normais"
 
 
 # Carrega o CSV com a captura vetorizada
@@ -29,11 +31,7 @@ def load_data(path):
 
 # Carrega o arquivo e seleciona somente os campos necessários para a análise
 def select_features(df):
-    cols = [
-        'num_packets', 'total_bytes',
-        'unique_src_ips', 'unique_dst_ips',
-        'tcp_count', 'udp_count', 'icmp_count'
-    ]
+    cols = list(settings.feature_columns)
 
     missing = [c for c in cols if c not in df.columns]
     if missing:
