@@ -7,7 +7,7 @@ import scapy.all as scapy
 class Analyzer:
     def __init__(self):
         self.packets = []
-        self.filename = "vector.csv"
+        self.filename = "artifacts/vector.csv"
 
     # RECEBE PACOTES (callback)
     def receive_packet(self, packet):

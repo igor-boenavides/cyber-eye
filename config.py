@@ -15,11 +15,11 @@ FEATURE_COLUMNS: Tuple[str, ...] = (
 @dataclass(frozen=True)
 class Settings:
     # Captura
-    interface: str = "Ethernet"
+    interface: str = "\\Device\\NPF_{D62F6733-6477-44B8-8154-2317C032EE56}"
     window_time: int = 3
-    capture_duration: int = 240
+    capture_duration: int = 60
     capture_filter: str = ""
-    num_runs: int = 100
+    num_runs: int = 30
     capture_filename: str = "packets.csv"
 
     # Modelo

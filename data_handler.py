@@ -120,7 +120,7 @@ def main():
 
     interface = input("Interface de captura (padrão enp1s0): ") or "enp1s0"
     fltr = input("Protocolo de captura (ex: udp, tcp, icmp): ") or ""
-    filename = input("Arquivo CSV para salvar pacotes (padrão packets.csv): ") or "packets.csv"
+    filename = "artifacts/" + input("Arquivo CSV para salvar pacotes (padrão packets.csv): ") or "packets.csv"
 
     duration_input = input("Duração da captura em segundos (padrão 30): ")
     try:
