@@ -7,7 +7,8 @@ from config import settings
 
 LOG_FILE = settings.log_file
 OUTPUT_DIR = settings.log_dir
-THRESHOLD = settings.threshold_path
+with open(settings.threshold_path) as f:
+    THRESHOLD = float(f.read().strip())
 
 # Paleta de cores
 COR_NORMAL    = "#2196F3"
