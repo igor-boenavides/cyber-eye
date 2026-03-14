@@ -3,10 +3,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from pathlib import Path
+from config import settings
 
-LOG_FILE = Path("logs/alerts.csv")
-OUTPUT_DIR = Path("logs")
-THRESHOLD = -0.1985
+LOG_FILE = settings.log_file
+OUTPUT_DIR = settings.log_dir
+THRESHOLD = settings.threshold_path
 
 # Paleta de cores
 COR_NORMAL    = "#2196F3"

@@ -2,12 +2,12 @@ import csv
 import os
 import time
 import scapy.all as scapy
-
+from config import settings
 
 class Analyzer:
     def __init__(self):
         self.packets = []
-        self.filename = "artifacts/vector.csv"
+        self.filename = settings.vector_csv
 
     # RECEBE PACOTES (callback)
     def receive_packet(self, packet):

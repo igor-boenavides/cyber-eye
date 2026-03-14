@@ -2,11 +2,11 @@ import csv
 import os
 from datetime import datetime
 from pathlib import Path
-
+from config import settings
 
 # Diretórios para logs
-LOG_DIR = Path("logs")
-LOG_FILE = LOG_DIR / "alerts.csv"
+LOG_DIR = settings.log_dir
+LOG_FILE = settings.log_file
 
 
 # Cabeçalho do CSV de logs

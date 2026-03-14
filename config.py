@@ -34,4 +34,8 @@ class Settings:
     # Features
     feature_columns: Tuple[str, ...] = field(default_factory=lambda: FEATURE_COLUMNS)
 
+    # Logs
+    log_dir: Path = Path("logs")
+    log_file: Path = Path("logs/alerts.csv")
+
 settings = Settings()
