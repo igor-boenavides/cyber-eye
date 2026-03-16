@@ -10,6 +10,14 @@ FEATURE_COLUMNS: Tuple[str, ...] = (
     "tcp_count",
     "udp_count",
     "icmp_count",
+    "packet_rate",
+    "byte_rate",
+    "syn_count",
+    "fin_count",
+    "ack_count",
+    "unique_dst_ports",
+    "mean_packet_size",
+    "std_packet_size",
 )
 
 @dataclass(frozen=True)
