@@ -46,4 +46,8 @@ class Settings:
     log_dir: Path = Path("logs")
     log_file: Path = Path("logs/alerts.csv")
 
+    # Dataset
+    dataset_dir: Path = Path("dataset/MachineLearningCVE")
+    use_dataset: bool = True
+
 settings = Settings()

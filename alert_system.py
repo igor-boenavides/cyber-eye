@@ -46,9 +46,9 @@ while True:
         log_event(score, threshold, vector)  # ← adiciona essa linha
 
         if score < threshold:
-            print(f"🚨 ANOMALIA DETECTADA | score={score:.4f}")
+            print(f"🚨 ANOMALIA DETECTADA | score= {score:.4f}")
         else:
-            print(f"✓ Normal | score={score:.4f}")
+            print(f"✓ Normal | score= {score:.4f}")
 
     except KeyboardInterrupt:
         print("\n[INFO] Encerrado pelo usuário")
