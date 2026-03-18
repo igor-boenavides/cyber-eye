@@ -10,8 +10,7 @@ LOG_FILE = settings.log_file
 
 
 # Cabeçalho do CSV de logs
-HEADER = ["timestamp", "classification", "score", "num_packets", "total_bytes",
-          "unique_src_ips", "unique_dst_ips", "tcp_count", "udp_count", "icmp_count"]
+HEADER = ["timestamp", "classification", "score"] + list(settings.feature_columns)
 
 
 # Garante ou cria arquivo de log com o cabeçalho

@@ -25,11 +25,10 @@ def load_log():
 
 
 def label_scenarios(df):
-    """Rotula cada janela com o cenário correspondente baseado no tipo de tráfego."""
     conditions = [
         (df["icmp_count"] > 1000),
         (df["tcp_count"] > 1000),
-        (df["num_packets"] > 50) & (df["tcp_count"] < 100) & (df["icmp_count"] < 100),
+        (df["unique_dst_ports"] > 50),  # ← Port Scan: muitas portas distintas
     ]
     labels = ["ICMP Flood", "SYN Flood", "Port Scan"]
     df["scenario"] = np.select(conditions, labels, default="Normal")
