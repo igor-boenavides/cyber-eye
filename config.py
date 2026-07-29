@@ -23,9 +23,11 @@ FEATURE_COLUMNS: Tuple[str, ...] = (
 @dataclass(frozen=True)
 class Settings:
     # Captura
-    interface: str = "\\Device\\NPF_{D62F6733-6477-44B8-8154-2317C032EE56}"
+    # Interface host-only para testes
+    # interface: str = "\\Device\\NPF_{D62F6733-6477-44B8-8154-2317C032EE56}"
+    interface: str = "Wi-Fi"
     window_time: int = 3
-    capture_duration: int = 60
+    capture_duration: int = 420
     capture_filter: str = ""
     num_runs: int = 30
     capture_filename: str = "packets.csv"
@@ -48,6 +50,6 @@ class Settings:
 
     # Dataset
     dataset_dir: Path = Path("dataset/MachineLearningCVE")
-    use_dataset: bool = True
+    use_dataset: bool = False
 
 settings = Settings()
