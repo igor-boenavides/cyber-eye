@@ -96,20 +96,10 @@ class Analyzer:
         vector = self.compute_vector(self.packets)
         if vector is None:
             return
-
         file_exists = os.path.isfile(self.filename)
         with open(self.filename, "a", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             if not file_exists:
-                writer.writerow([
-                    "num_packets", "total_bytes",
-                    "unique_src_ips", "unique_dst_ips",
-                    "tcp_count", "udp_count", "icmp_count",
-                    "packet_rate", "byte_rate",
-                    "syn_count", "fin_count", "ack_count",
-                    "unique_dst_ports",
-                    "mean_packet_size", "std_packet_size"
-                ])
+                writer.writerow(list(settings.feature_columns))
             writer.writerow(vector)
-
         self.packets = []

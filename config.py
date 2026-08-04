@@ -25,7 +25,7 @@ class Settings:
     # Captura
     # Interface host-only para testes
     # interface: str = "\\Device\\NPF_{D62F6733-6477-44B8-8154-2317C032EE56}"
-    interface: str = "Wi-Fi"
+    interface: str = "wlo1"
     window_time: int = 3
     capture_duration: int = 420
     capture_filter: str = ""
@@ -33,7 +33,7 @@ class Settings:
     capture_filename: str = "packets.csv"
 
     # Modelo
-    threshold_percentile: float = 97.5
+    threshold_percentile: float = 99.0
 
     # Artefatos
     vector_csv: Path = Path("artifacts/vector.csv")
