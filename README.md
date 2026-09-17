@@ -2,7 +2,7 @@
 
 Sistema de Detecção de Intrusão (IDS) baseado em Machine Learning não-supervisionado. O Cyber Eye monitora o tráfego de rede em tempo real, extrai features estatísticas por janelas de captura e utiliza um modelo **Isolation Forest** para identificar comportamentos anômalos.
 
-Desenvolvido como Trabalho de Conclusão de Curso (TCC) em Ciência da Computação.
+Desenvolvido como Trabalho de Conclusão de Curso (TCC) em Redes de Computadores.
 
 ---
 
