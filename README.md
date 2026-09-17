@@ -171,4 +171,4 @@ O projeto suporta treinamento com o **CIC-IDS-2017** (Canadian Institute for Cyb
 
 ## Autor
 
-Igor Boenavides - Trabalho de Conclusão de Curso, Ciência da Computação
+Igor Boenavides - Trabalho de Conclusão de Curso, Redes de Computadores
